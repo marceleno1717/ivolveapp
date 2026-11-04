@@ -4,8 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'marceleno17/ivolveapp'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-credentials'
-        KUBECONFIG_CREDENTIALS_ID = 'kubeconfig-credentials'
+        DOCKERHUB_CREDENTIALS_ID = 'docker'
     }
 
     stages {
@@ -57,10 +56,8 @@ pipeline {
         stage('7. Deploy to Kubernetes Cluster') {
             steps {
                 echo "Applying manifests to Kubernetes cluster..."
-                withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                    sh 'kubectl apply -f deployment.yaml'
-                    sh 'kubectl rollout status deployment/ivolveapp -n ivolve --timeout=120s'
-                }
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl rollout status deployment/ivolveapp -n ivolve --timeout=120s'
             }
         }
     }
