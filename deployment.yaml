@@ -56,7 +56,7 @@ spec:
               echo "Database ivolve initialized and privileges granted to $DB_USER."
       containers:
         - name: app
-          image: marceleno17/lab8-app:latest
+          image: marceleno17/ivolveapp:latest
           ports:
             - containerPort: 3000
               name: http
