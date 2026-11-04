@@ -1,0 +1,48 @@
+@Library('shared-lib') _
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'marceleno17/ivolveapp'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKERHUB_CREDENTIALS_ID = 'docker'
+        DEPLOYMENT_FILE = 'deployment.yaml'
+    }
+
+    stages {
+        stage('1. Build App') {
+            steps {
+                echo "Installing application dependencies via shared library..."
+                buildJS()
+            }
+        }
+
+        stage('2. Build, Scan & Push Docker Image') {
+            steps {
+                echo "Building, scanning with Trivy, and pushing Docker image via shared library..."
+                buildScanPushImage("${IMAGE_NAME}:${IMAGE_TAG}", "${DOCKERHUB_CREDENTIALS_ID}")
+            }
+        }
+
+        stage('3. Deploy to Kubernetes Cluster') {
+            steps {
+                echo "Updating deployment manifest and applying to Kubernetes via shared library..."
+                k8sDeploy("${IMAGE_NAME}", "${IMAGE_TAG}", "${DEPLOYMENT_FILE}")
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline run completed."
+            sh 'docker logout || true'
+        }
+        success {
+            echo "Pipeline succeeded! Application deployed with image ${IMAGE_NAME}:${IMAGE_TAG}."
+        }
+        failure {
+            echo "Pipeline failed! Please inspect logs for details."
+        }
+    }
+}
