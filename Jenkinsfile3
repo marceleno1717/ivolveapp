@@ -1,0 +1,50 @@
+@Library('shared-lib') _
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'marceleno17/ivolveapp'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKERHUB_CREDENTIALS_ID = 'docker'
+        DEPLOYMENT_FILE = 'deployment.yaml'
+        GITHUB_CREDENTIALS_ID = 'github'
+        EMAIL = "maro.keko17@gmail.com"
+        REPOURL = "https://github.com/marceleno1717/ivolveapp"
+    }
+
+    stages {
+        stage('1. Build App') {
+            steps {
+                echo "Installing application dependencies via shared library..."
+                buildJS()
+            }
+        }
+
+        stage('2. Build, Scan & Push Docker Image') {
+            steps {
+                echo "Building, scanning with Trivy, and pushing Docker image via shared library..."
+                buildScanPushImage("${IMAGE_NAME}:${IMAGE_TAG}", "${DOCKERHUB_CREDENTIALS_ID}")
+            }
+        }
+
+        stage('3. Push to repo') {
+            steps {
+                pushDeployment("${IMAGE_NAME}:${IMAGE_TAG}", "${GITHUB_CREDENTIALS_ID}", "${EMAIL}", "${REPOURL}")
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline run completed."
+            sh 'docker logout || true'
+        }
+        success {
+            echo "Pipeline succeeded! Application deployed with image ${IMAGE_NAME}:${IMAGE_TAG}."
+        }
+        failure {
+            echo "Pipeline failed! Please inspect logs for details."
+        }
+    }
+}
