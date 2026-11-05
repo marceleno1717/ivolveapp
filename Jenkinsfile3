@@ -30,7 +30,7 @@ pipeline {
 
         stage('3. Push to repo') {
             steps {
-                pushDeployment("${IMAGE_NAME}:${IMAGE_TAG}", "${GITHUB_CREDENTIALS_ID}", "${EMAIL}", "${REPOURL}")
+                pushDeployment("${IMAGE_NAME}", "${IMAGE_TAG}", "${GITHUB_CREDENTIALS_ID}", "${EMAIL}", "${REPOURL}")
             }
         }
     }
